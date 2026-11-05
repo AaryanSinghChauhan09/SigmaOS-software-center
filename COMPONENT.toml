@@ -1,0 +1,16 @@
+[component]
+name = "SigmaOS-software-center"
+tier = 3
+stability = "scaffold"
+language = "rust"
+description = "Unified Software Manager aggregating native packages, Flatpaks, and web applications"
+upstream = ["https://github.com/linuxmint/mintinstall"]
+
+[contract]
+provides = ["software-center", "app-store-catalog", "flatpak-aggregator"]
+depends_on = []
+
+[maturity]
+status = "Scaffold"
+test_evidence = "Compiles and passes AAA unit tests"
+next_milestone = "Hardware and runtime integration"
