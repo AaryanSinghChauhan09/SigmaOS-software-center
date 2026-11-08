@@ -2,7 +2,7 @@
 name = "sigmaos_software_center"
 version = "0.1.0"
 edition = "2021"
-description = "Unified Software Manager aggregating native packages, Flatpaks, and web applications"
+description = "Application catalog with validated listings, exact ID lookup, title search, and Flatpak filtering"
 
 [lib]
 name = "sigmaos_software_center"

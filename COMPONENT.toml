@@ -3,11 +3,11 @@ name = "SigmaOS-software-center"
 tier = 3
 stability = "scaffold"
 language = "rust"
-description = "Unified Software Manager aggregating native packages, Flatpaks, and web applications"
+description = "Application catalog with validated listings, exact ID lookup, title search, and Flatpak filtering; does not install applications"
 upstream = ["https://github.com/linuxmint/mintinstall"]
 
 [contract]
-provides = ["software-center", "app-store-catalog", "flatpak-aggregator"]
+provides = ["app-catalog", "application-title-search", "flatpak-listing-filter"]
 depends_on = []
 
 [maturity]
