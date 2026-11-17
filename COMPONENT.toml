@@ -1,7 +1,7 @@
 [component]
 name = "SigmaOS-software-center"
 tier = 3
-stability = "scaffold"
+stability = "beta"
 language = "rust"
 description = "Application catalog with validated listings, exact ID lookup, title search, and Flatpak filtering; does not install applications"
 upstream = ["https://github.com/linuxmint/mintinstall"]
