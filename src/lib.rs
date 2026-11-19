@@ -1,3 +1,4 @@
+#![forbid(unsafe_code)]
 use std::fmt;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -92,5 +93,58 @@ mod tests {
         let mut catalog = SoftwareCenterCatalog::new();
         catalog.add_listing("org.gimp.GIMP", "GNU Image Manipulation Program", true).unwrap();
         assert_eq!(catalog.count(), 1);
+    }
+}
+
+
+#[cfg(test)]
+mod software_center_extra_tests {
+    use super::*;
+
+    #[test]
+    fn test_empty_app_id_validation_aaa() {
+        // Arrange
+        let mut catalog = SoftwareCenterCatalog::new();
+        // Act
+        let res = catalog.add_listing("   ", "Some App", false);
+        // Assert
+        assert_eq!(res, Err(CatalogError::EmptyAppId));
+    }
+
+    #[test]
+    fn test_duplicate_app_id_error_aaa() {
+        // Arrange
+        let mut catalog = SoftwareCenterCatalog::new();
+        catalog.add_listing("org.test.app", "Test App", false).unwrap();
+        // Act
+        let res = catalog.add_listing("org.test.app", "Another Title", true);
+        // Assert
+        assert_eq!(res, Err(CatalogError::DuplicateAppId("org.test.app".into())));
+    }
+
+    #[test]
+    fn test_search_title_case_insensitive_aaa() {
+        // Arrange
+        let mut catalog = SoftwareCenterCatalog::new();
+        catalog.add_listing("app.vlc", "VLC Media Player", true).unwrap();
+        catalog.add_listing("app.mpv", "mpv Video Player", false).unwrap();
+        // Act
+        let results = catalog.search_title("player");
+        // Assert
+        assert_eq!(results.len(), 2);
+    }
+
+    #[test]
+    fn test_remove_listing_aaa() {
+        // Arrange
+        let mut catalog = SoftwareCenterCatalog::new();
+        catalog.add_listing("app.temp", "Temporary", false).unwrap();
+        assert_eq!(catalog.count(), 1);
+        // Act
+        let removed = catalog.remove("app.temp");
+        // Assert
+        assert!(removed.is_some());
+        assert_eq!(catalog.count(), 0);
+        assert!(catalog.remove("app.temp").is_none());
     }
 }
