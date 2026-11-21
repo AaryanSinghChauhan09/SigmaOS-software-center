@@ -1,9 +1,9 @@
 # SigmaOS-software-center
 
-Application catalog with validated listings, exact ID lookup, title search, and Flatpak filtering; does not install applications
+Software center for SigmaOS inspired by Linux Mint
 
 - **Category:** Package Management
-- **Engine:** software_manager
+- **Engine:** software_center
 - **Language:** Rust
 
 ## Build & Test

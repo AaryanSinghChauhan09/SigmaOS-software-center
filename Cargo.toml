@@ -1,8 +1,9 @@
 [package]
-name = "sigmaos_software_center"
+name = "SigmaOS-mint-software-center"
 version = "0.1.0"
 edition = "2021"
-description = "Application catalog with validated listings, exact ID lookup, title search, and Flatpak filtering"
+license = "Apache-2.0"
+description = "SigmaOS mint-software-center component"
 
 [lib]
 name = "sigmaos_software_center"

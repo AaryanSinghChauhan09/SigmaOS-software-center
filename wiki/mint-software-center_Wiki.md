@@ -1,7 +1,7 @@
 # SigmaOS-SigmaOS-software-center Component Wiki
 
 ## Overview
-SigmaOS-SigmaOS-software-center provides Application catalog with validated listings, exact ID lookup, title search, and Flatpak filtering; does not install applications for the SigmaOS operating system. It demonstrates the subsystem and integration within the SigmaOS ecosystem, following the principles of clear abstraction and deterministic initialization.
+SigmaOS-SigmaOS-software-center provides Software center for SigmaOS inspired by Linux Mint for the SigmaOS operating system. It demonstrates the subsystem and integration within the SigmaOS ecosystem, following the principles of clear abstraction and deterministic initialization.
 
 ## Principles
 - Single Responsibility

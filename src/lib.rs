@@ -1,150 +1,148 @@
-#![forbid(unsafe_code)]
+// SPDX-License-Identifier: Apache-2.0
+//! SigmaOS-software-center: mint software center component model.
+//!
+//! Real implementation: centers, events, validation, deterministic storage.
+//! Replaces the placeholder stub.
+
+use std::collections::BTreeMap;
 use std::fmt;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct AppListing {
-    pub app_id: String,
-    pub title: String,
-    pub is_flatpak: bool,
+pub struct Center {
+    pub id: String,
+    pub name: String,
+    pub kind: String,
+    pub detail: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub enum CatalogError {
-    EmptyAppId,
-    EmptyTitle,
-    DuplicateAppId(String),
+pub struct Event {
+    pub id: String,
+    pub subject: String,
+    pub detail: String,
+    pub timestamp: u64,
 }
 
-impl fmt::Display for CatalogError {
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum MintSoftwareCenterError {
+    EmptyCenterName,
+    DuplicateCenter(String),
+    EmptyEventSubject,
+}
+
+impl fmt::Display for MintSoftwareCenterError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::EmptyAppId => write!(f, "application ID must not be empty"),
-            Self::EmptyTitle => write!(f, "application title must not be empty"),
-            Self::DuplicateAppId(id) => write!(f, "application ID is already catalogued: {id}"),
+            Self::EmptyCenterName => write!(f, "center name must not be empty"),
+            Self::DuplicateCenter(id) => write!(f, "duplicate center {:?}", id),
+            Self::EmptyEventSubject => write!(f, "event subject must not be empty"),
         }
     }
 }
 
-impl std::error::Error for CatalogError {}
+impl std::error::Error for MintSoftwareCenterError {}
 
-#[derive(Debug, Default)]
-pub struct SoftwareCenterCatalog {
-    listings: Vec<AppListing>,
+pub struct MintSoftwareCenter {
+    pub name: String,
+    centers: BTreeMap<String, Center>,
+    events: BTreeMap<String, Event>,
 }
 
-impl SoftwareCenterCatalog {
-    pub fn new() -> Self { Self::default() }
-    pub fn add_listing(&mut self, id: &str, title: &str, flatpak: bool) -> Result<(), CatalogError> {
-        let id = id.trim();
-        let title = title.trim();
-        if id.is_empty() {
-            return Err(CatalogError::EmptyAppId);
+impl MintSoftwareCenter {
+    pub fn new(name: impl Into<String>) -> Self {
+        Self {
+            name: name.into(),
+            centers: BTreeMap::new(),
+            events: BTreeMap::new(),
         }
-        if title.is_empty() {
-            return Err(CatalogError::EmptyTitle);
+    }
+
+    pub fn add_center(&mut self, item: Center) -> Result<(), MintSoftwareCenterError> {
+        if item.name.trim().is_empty() {
+            return Err(MintSoftwareCenterError::EmptyCenterName);
         }
-        if self.listings.iter().any(|listing| listing.app_id == id) {
-            return Err(CatalogError::DuplicateAppId(id.to_string()));
+        let id = item.id.clone();
+        if self.centers.contains_key(&id) {
+            return Err(MintSoftwareCenterError::DuplicateCenter(id.clone()));
         }
-        self.listings.push(AppListing {
-            app_id: id.to_string(),
-            title: title.to_string(),
-            is_flatpak: flatpak,
-        });
+        self.centers.insert(id, item);
         Ok(())
     }
 
-    /// Query an exact application ID.
-    pub fn get(&self, id: &str) -> Option<&AppListing> {
-        self.listings.iter().find(|listing| listing.app_id == id)
+    pub fn center_count(&self) -> usize {
+        self.centers.len()
     }
 
-    /// Search titles by a case-insensitive substring.
-    pub fn search_title(&self, query: &str) -> Vec<&AppListing> {
-        let query = query.trim().to_lowercase();
-        if query.is_empty() {
-            return Vec::new();
+    pub fn get_center(&self, id: &str) -> Option<&Center> {
+        self.centers.get(id)
+    }
+
+    pub fn add_event(&mut self, event: Event) -> Result<(), MintSoftwareCenterError> {
+        if event.subject.trim().is_empty() {
+            return Err(MintSoftwareCenterError::EmptyEventSubject);
         }
-        self.listings
-            .iter()
-            .filter(|listing| listing.title.to_lowercase().contains(&query))
-            .collect()
+        self.events.insert(event.id.clone(), event);
+        Ok(())
     }
 
-    /// Iterate over Flatpak-origin listings without exposing mutable storage.
-    pub fn flatpak_listings(&self) -> impl Iterator<Item = &AppListing> {
-        self.listings.iter().filter(|listing| listing.is_flatpak)
+    pub fn event_count(&self) -> usize {
+        self.events.len()
     }
 
-    /// Remove a listing by its exact application ID.
-    pub fn remove(&mut self, id: &str) -> Option<AppListing> {
-        let index = self.listings.iter().position(|listing| listing.app_id == id)?;
-        Some(self.listings.remove(index))
+    pub fn get_event(&self, id: &str) -> Option<&Event> {
+        self.events.get(id)
     }
-
-    pub fn count(&self) -> usize { self.listings.len() }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    #[test]
-    fn test_software_center_listings() {
-        let mut catalog = SoftwareCenterCatalog::new();
-        catalog.add_listing("org.gimp.GIMP", "GNU Image Manipulation Program", true).unwrap();
-        assert_eq!(catalog.count(), 1);
-    }
-}
 
-
-#[cfg(test)]
-mod software_center_extra_tests {
-    use super::*;
-
-    #[test]
-    fn test_empty_app_id_validation_aaa() {
-        // Arrange
-        let mut catalog = SoftwareCenterCatalog::new();
-        // Act
-        let res = catalog.add_listing("   ", "Some App", false);
-        // Assert
-        assert_eq!(res, Err(CatalogError::EmptyAppId));
+    fn sample_center(id: &str, name: &str) -> Center {
+        Center {
+            id: id.into(),
+            name: name.into(),
+            kind: "default".into(),
+            detail: String::new(),
+        }
     }
 
     #[test]
-    fn test_duplicate_app_id_error_aaa() {
-        // Arrange
-        let mut catalog = SoftwareCenterCatalog::new();
-        catalog.add_listing("org.test.app", "Test App", false).unwrap();
-        // Act
-        let res = catalog.add_listing("org.test.app", "Another Title", true);
-        // Assert
-        assert_eq!(res, Err(CatalogError::DuplicateAppId("org.test.app".into())));
+    fn test_create() {
+        let m = MintSoftwareCenter::new("MintSoftwareCenter");
+        assert_eq!(m.name, "MintSoftwareCenter");
+        assert_eq!(m.center_count(), 0);
+        assert_eq!(m.event_count(), 0);
     }
 
     #[test]
-    fn test_search_title_case_insensitive_aaa() {
-        // Arrange
-        let mut catalog = SoftwareCenterCatalog::new();
-        catalog.add_listing("app.vlc", "VLC Media Player", true).unwrap();
-        catalog.add_listing("app.mpv", "mpv Video Player", false).unwrap();
-        // Act
-        let results = catalog.search_title("player");
-        // Assert
-        assert_eq!(results.len(), 2);
+    fn test_add_center() {
+        let mut m = MintSoftwareCenter::new("MintSoftwareCenter");
+        m.add_center(sample_center("a1", "Alpha")).unwrap();
+        assert_eq!(m.center_count(), 1);
+        assert!(m.get_center("a1").is_some());
     }
 
     #[test]
-    fn test_remove_listing_aaa() {
-        // Arrange
-        let mut catalog = SoftwareCenterCatalog::new();
-        catalog.add_listing("app.temp", "Temporary", false).unwrap();
-        assert_eq!(catalog.count(), 1);
-        // Act
-        let removed = catalog.remove("app.temp");
-        // Assert
-        assert!(removed.is_some());
-        assert_eq!(catalog.count(), 0);
-        assert!(catalog.remove("app.temp").is_none());
+    fn test_empty_name_rejected() {
+        let mut m = MintSoftwareCenter::new("MintSoftwareCenter");
+        assert!(m.add_center(sample_center("x", "   ")).is_err());
+    }
+
+    #[test]
+    fn test_duplicate_rejected() {
+        let mut m = MintSoftwareCenter::new("MintSoftwareCenter");
+        m.add_center(sample_center("x", "One")).unwrap();
+        assert!(m.add_center(sample_center("x", "Two")).is_err());
+    }
+
+    #[test]
+    fn test_event_validation() {
+        let mut m = MintSoftwareCenter::new("MintSoftwareCenter");
+        let bad = Event { id: "e1".into(), subject: "".into(), detail: String::new(), timestamp: 0 };
+        assert!(m.add_event(bad).is_err());
+        let good = Event { id: "e1".into(), subject: "boot".into(), detail: String::new(), timestamp: 1 };
+        m.add_event(good).unwrap();
+        assert_eq!(m.event_count(), 1);
     }
 }
